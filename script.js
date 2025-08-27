@@ -18,16 +18,17 @@ document.addEventListener("DOMContentLoaded", () => {
     1.06M12 8.25a3.75 3.75 0 1 1 0
     7.5 3.75 3.75 0 0 1 0-7.5Z" />`;
 
-  // Load saved theme
+  // Load saved theme or default to dark
   const savedTheme = localStorage.getItem("theme");
-  if (savedTheme === "dark") {
-    document.body.classList.add("dark-mode");
-    themeImage.src = "images/glitch_dark_blue.png";
-    themeToggleIcon.innerHTML = moonSVG;
-  } else {
+  if (savedTheme === "light") {
     document.body.classList.remove("dark-mode");
     themeImage.src = "images/glitch_white_blue.png";
     themeToggleIcon.innerHTML = sunSVG;
+  } else {
+    // Default to dark if no saved value
+    document.body.classList.add("dark-mode");
+    themeImage.src = "images/glitch_dark_blue.png";
+    themeToggleIcon.innerHTML = moonSVG;
   }
 
   // Toggle dark mode
@@ -40,7 +41,6 @@ document.addEventListener("DOMContentLoaded", () => {
     themeToggleIcon.innerHTML = isDark ? moonSVG : sunSVG;
   });
 
-  // Active buttons saving/restoring
   function saveActiveButtons() {
     const activeIndices = [];
     grid.querySelectorAll("button.active").forEach(button => {
@@ -57,72 +57,48 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Build bingo grid
   function buildBoard(data) {
     grid.innerHTML = ""; // clear previous buttons
+
     data.forEach((text, index) => {
       const btn = document.createElement("button");
       btn.textContent = text;
-      btn.dataset.index = index;
+      btn.dataset.index = index; // assign index to identify the button
 
       btn.addEventListener("click", () => {
         btn.classList.toggle("active");
-        saveActiveButtons();
+        saveActiveButtons();  // save active buttons state on every toggle
       });
 
       grid.appendChild(btn);
     });
 
-    applyActiveButtons();
+    applyActiveButtons(); // restore toggled buttons state
   }
 
-  // Load goals from JSON
-  async function loadGoals(filepath = "bingo_goals.json") {
-    const response = await fetch(filepath);
-    const goals = await response.json();
-    return goals;
-  }
-
-  // Generate random board
-  function generateBoard(allGoals) {
-    const usedGoalIndices = [];
-    while (usedGoalIndices.length < 25) {
-      if (usedGoalIndices.length === 12) {
-        usedGoalIndices.push(-1); // free space
-      } else {
-        const randIndex = Math.floor(Math.random() * allGoals.length);
-        if (!usedGoalIndices.includes(randIndex)) {
-          usedGoalIndices.push(randIndex);
-        }
-      }
-    }
-
-    return usedGoalIndices.map(idx =>
-      idx === -1 ? "[FREE SPACE] Fox noises" : allGoals[idx]
-    );
-  }
-
-  // Load or refresh board
-  async function loadBoard() {
-    const allGoals = await loadGoals();
-    const savedBoard = JSON.parse(localStorage.getItem("bingoBoard") || "null");
-
+  function loadBoard() {
+    const savedBoard = localStorage.getItem("bingoBoard");
     if (savedBoard) {
-      buildBoard(savedBoard);
+      const data = JSON.parse(savedBoard);
+      buildBoard(data);
     } else {
-      const board = generateBoard(allGoals);
-      buildBoard(board);
-      localStorage.setItem("bingoBoard", JSON.stringify(board));
+      fetch("bingo_goals.json")
+        .then(response => response.json())
+        .then(data => {
+          buildBoard(data);
+          localStorage.setItem("bingoBoard", JSON.stringify(data));
+        })
+        .catch(error => {
+          console.error("Failed to load JSON:", error);
+        });
     }
   }
 
-  // Initial load
   loadBoard();
 
-  // Refresh button
-  refreshBtn.addEventListener("click", async () => {
+  refreshBtn.addEventListener("click", () => {
     localStorage.removeItem("bingoBoard");
-    localStorage.removeItem("bingoActive");
-    await loadBoard();
+    localStorage.removeItem("bingoActive");  // also clear toggled state on refresh
+    loadBoard();
   });
 });
