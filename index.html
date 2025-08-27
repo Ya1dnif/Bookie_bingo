@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Bookie Bingo</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@800&display=swap" rel="stylesheet">
+</head>
+
+<body class="dark-mode">
+  <header class="header-bar">
+    <a href="https://twitch.tv/bookieson_" target="_blank" rel="noopener noreferrer">
+
+      <img id="themeImage" src="images/glitch_dark_blue.png" alt="Twitch" class="header-logo">
+
+    </a>
+
+    <button id="refreshBoard" class="refresh-button"><span>New Board</span></button>
+    <button id="changeTheme" class="change-theme">
+      <svg id="themeToggleIcon" xmlns="http://www.w3.org/2000/svg" fill="none"
+       viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"
+       class="size-6">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M12 3v1.5m6.364 1.136-1.06 1.06M21 12h-1.5m-1.136
+          6.364-1.06-1.06M12 21v-1.5m-6.364-1.136
+          1.06-1.06M3 12h1.5m1.136-6.364 1.06
+          1.06M12 8.25a3.75 3.75 0 1 1 0
+          7.5 3.75 3.75 0 0 1 0-7.5Z" />
+      </svg>
+    </button>
+  </header>
+
+  <h1>BOOKIE STREAM BINGO</h1>
+  <div class="grid" id="bingoGrid"></div>
+
+
+
+  <section class="text-box">
+    <h1>Please don't bait Bookie or the chat into saying or doing something on the bingo board.
+      It makes the stream and bingo less fun for everyone.
+      This is not a to-do list, it's just a silly game.</h1>
+    <p></p>
+  </section>
+  <script src="script.js"></script>
+  <footer class="footer">
+    Made by Ya1dnif (DM me your goal ideas on discord)
+  </footer>
+
+</body>
+</html>
