@@ -98,21 +98,19 @@ document.addEventListener("DOMContentLoaded", () => {
     return goals;
   }
 
-  // Generate random board
+  // Generate random board with proper free space
   function generateBoard(allGoals) {
-    const usedGoalIndices = [];
-    while (usedGoalIndices.length < 25) {
-      if (usedGoalIndices.length === 12) {
-        usedGoalIndices.push(-1); // free space
-      } else {
-        const randIndex = Math.floor(Math.random() * allGoals.length);
-        if (!usedGoalIndices.includes(randIndex)) {
-          usedGoalIndices.push(randIndex);
-        }
-      }
+    const usedGoalIndices = new Set();
+
+    while (usedGoalIndices.size < 24) { // 24 random goals
+      const randIndex = Math.floor(Math.random() * allGoals.length);
+      usedGoalIndices.add(randIndex);
     }
 
-    return usedGoalIndices.map(idx =>
+    const indicesArray = Array.from(usedGoalIndices);
+    indicesArray.splice(12, 0, -1); // insert free space in the middle
+
+    return indicesArray.map(idx =>
       idx === -1 ? "[FREE SPACE] Fox noises" : allGoals[idx]
     );
   }
