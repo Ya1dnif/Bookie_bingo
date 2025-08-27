@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
     themeImage.src = "images/glitch_white_blue.png";
     themeToggleIcon.innerHTML = sunSVG;
   } else {
-    // Default to dark if no saved value
+    // Default dark mode if no saved preference
     document.body.classList.add("dark-mode");
     themeImage.src = "images/glitch_dark_blue.png";
     themeToggleIcon.innerHTML = moonSVG;
@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
     themeToggleIcon.innerHTML = isDark ? moonSVG : sunSVG;
   });
 
+  // Active buttons saving/restoring
   function saveActiveButtons() {
     const activeIndices = [];
     grid.querySelectorAll("button.active").forEach(button => {
@@ -57,48 +58,72 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Build bingo grid
   function buildBoard(data) {
     grid.innerHTML = ""; // clear previous buttons
-
     data.forEach((text, index) => {
       const btn = document.createElement("button");
       btn.textContent = text;
-      btn.dataset.index = index; // assign index to identify the button
+      btn.dataset.index = index;
 
       btn.addEventListener("click", () => {
         btn.classList.toggle("active");
-        saveActiveButtons();  // save active buttons state on every toggle
+        saveActiveButtons();
       });
 
       grid.appendChild(btn);
     });
 
-    applyActiveButtons(); // restore toggled buttons state
+    applyActiveButtons();
   }
 
-  function loadBoard() {
-    const savedBoard = localStorage.getItem("bingoBoard");
+  // Load goals from JSON
+  async function loadGoals(filepath = "bingo_goals.json") {
+    const response = await fetch(filepath);
+    const goals = await response.json();
+    return goals;
+  }
+
+  // Generate random board
+  function generateBoard(allGoals) {
+    const usedGoalIndices = [];
+    while (usedGoalIndices.length < 25) {
+      if (usedGoalIndices.length === 12) {
+        usedGoalIndices.push(-1); // free space
+      } else {
+        const randIndex = Math.floor(Math.random() * allGoals.length);
+        if (!usedGoalIndices.includes(randIndex)) {
+          usedGoalIndices.push(randIndex);
+        }
+      }
+    }
+
+    return usedGoalIndices.map(idx =>
+      idx === -1 ? "[FREE SPACE] Fox noises" : allGoals[idx]
+    );
+  }
+
+  // Load or refresh board
+  async function loadBoard() {
+    const allGoals = await loadGoals();
+    const savedBoard = JSON.parse(localStorage.getItem("bingoBoard") || "null");
+
     if (savedBoard) {
-      const data = JSON.parse(savedBoard);
-      buildBoard(data);
+      buildBoard(savedBoard);
     } else {
-      fetch("bingo_goals.json")
-        .then(response => response.json())
-        .then(data => {
-          buildBoard(data);
-          localStorage.setItem("bingoBoard", JSON.stringify(data));
-        })
-        .catch(error => {
-          console.error("Failed to load JSON:", error);
-        });
+      const board = generateBoard(allGoals);
+      buildBoard(board);
+      localStorage.setItem("bingoBoard", JSON.stringify(board));
     }
   }
 
+  // Initial load
   loadBoard();
 
-  refreshBtn.addEventListener("click", () => {
+  // Refresh button
+  refreshBtn.addEventListener("click", async () => {
     localStorage.removeItem("bingoBoard");
-    localStorage.removeItem("bingoActive");  // also clear toggled state on refresh
-    loadBoard();
+    localStorage.removeItem("bingoActive");
+    await loadBoard();
   });
 });
