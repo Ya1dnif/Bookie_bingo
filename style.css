@@ -171,7 +171,6 @@ body.dark-mode .change-theme {
   background-color: #edf3fc;
   color: #545454;
   font-size: 14px;
-  z-index: 1000; /* ensures it's on top */
 }
 
 body.dark-mode .footer {
