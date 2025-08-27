@@ -36,7 +36,12 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.toggle("dark-mode");
     const isDark = document.body.classList.contains("dark-mode");
 
-    localStorage.setItem("theme", isDark ? "dark" : "light");
+    try {
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+    } catch (e) {
+      console.warn("localStorage not available for theme:", e);
+    }
+
     themeImage.src = isDark ? "images/glitch_dark_blue.png" : "images/glitch_white_blue.png";
     themeToggleIcon.innerHTML = isDark ? moonSVG : sunSVG;
   });
@@ -47,11 +52,20 @@ document.addEventListener("DOMContentLoaded", () => {
     grid.querySelectorAll("button.active").forEach(button => {
       activeIndices.push(button.dataset.index);
     });
-    localStorage.setItem("bingoActive", JSON.stringify(activeIndices));
+    try {
+      localStorage.setItem("bingoActive", JSON.stringify(activeIndices));
+    } catch (e) {
+      console.warn("localStorage not available for active buttons:", e);
+    }
   }
 
   function applyActiveButtons() {
-    const savedActive = JSON.parse(localStorage.getItem("bingoActive") || "[]");
+    let savedActive = [];
+    try {
+      savedActive = JSON.parse(localStorage.getItem("bingoActive") || "[]");
+    } catch (e) {
+      console.warn("localStorage not available for reading active buttons:", e);
+    }
     savedActive.forEach(index => {
       const btn = grid.querySelector(`button[data-index='${index}']`);
       if (btn) btn.classList.add("active");
@@ -106,14 +120,23 @@ document.addEventListener("DOMContentLoaded", () => {
   // Load or refresh board
   async function loadBoard() {
     const allGoals = await loadGoals();
-    const savedBoard = JSON.parse(localStorage.getItem("bingoBoard") || "null");
+    let board;
 
-    if (savedBoard) {
-      buildBoard(savedBoard);
-    } else {
-      const board = generateBoard(allGoals);
-      buildBoard(board);
+    try {
+      const savedBoard = JSON.parse(localStorage.getItem("bingoBoard") || "null");
+      board = savedBoard || generateBoard(allGoals);
+    } catch {
+      // localStorage blocked
+      board = generateBoard(allGoals);
+    }
+
+    buildBoard(board);
+
+    // Attempt to save board only if possible
+    try {
       localStorage.setItem("bingoBoard", JSON.stringify(board));
+    } catch (e) {
+      console.warn("localStorage not available for bingo board:", e);
     }
   }
 
@@ -122,8 +145,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Refresh button
   refreshBtn.addEventListener("click", async () => {
-    localStorage.removeItem("bingoBoard");
-    localStorage.removeItem("bingoActive");
+    try {
+      localStorage.removeItem("bingoBoard");
+      localStorage.removeItem("bingoActive");
+    } catch {}
     await loadBoard();
   });
 });
